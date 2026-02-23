@@ -38,6 +38,36 @@ def mongraphique():
 def histogramme():
     return render_template("histogramme.html")
 
+# --- NOUVELLE API POUR L'ATELIER : PRÉCIPITATIONS PARIS ---
+
+@app.get("/paris_precip")
+def api_paris_precip():
+    """
+    Retourne les précipitations horaires à Paris au format JSON
+    [{ datetime: "...", precip_mm: 0.3 }, ...]
+    """
+    url = "https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&hourly=precipitation"
+    response = requests.get(url)
+    data = response.json()
+
+    times = data.get("hourly", {}).get("time", [])
+    precs = data.get("hourly", {}).get("precipitation", [])
+
+    n = min(len(times), len(precs))
+    result = [
+        {"datetime": times[i], "precip_mm": precs[i]}
+        for i in range(n)
+    ]
+
+    return jsonify(result)
+
+@app.route("/atelier")
+def atelier():
+    """
+    Page HTML qui affiche un ScatterChart des précipitations.
+    """
+    return render_template("atelier.html")
+
 # Ne rien mettre après ce commentaire
     
 if __name__ == "__main__":
